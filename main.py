@@ -66,14 +66,14 @@ class DNPTwitterGiveawayChooser:
         sinceId = None
         max_id = max_id
         maxTweets = max_tweets
-        split = int(self.tweet_ratio * len(self.tweet.full_next.split()))
+        split = int(self.tweet_ratio * len(self.tweet.full_text.split()))
         tweet_text = ' '.join(self.tweet.full_text.split()[:split])
         print(tweet_text)
         searchQuery = 'RT @{author}'.format(author=self.author)+ tweet_text
         print(searchQuery)
         tweetCount = 0
         tweetsPerQry = 100
-        print('[+] Retrieving all contest tweets for TWEET ID: {tweet_id}\n Tweet text: {text}'.format(text=self.tweet_id))
+        #print('[+] Retrieving all contest tweets for TWEET ID: {tweet_id}\n Tweet text: {text}'.format(text=self.tweet_id))
         print("[*] Downloading max {0} tweets".format(maxTweets))
         with open(self.filename,'w') as f:    
             while tweetCount < maxTweets:
@@ -210,8 +210,8 @@ class DNPTwitterGiveawayChooser:
                         video_url = vid_info['url']
         if video_url:
             return video_url
-url = ''
-members_to_follow = []
+url = 'https://twitter.com/DNPthree/status/1204526093459431425?s=20'
+members_to_follow = ['dnpthree']
 dnp_giveaway = DNPTwitterGiveawayChooser(tweet_url=url,
                                          choose_winner=True,
                                          winner_count=1,
