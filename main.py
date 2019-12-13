@@ -229,6 +229,25 @@ class DNPTwitterGiveawayChooser:
         if video_url:
             return video_url
 
+def keyCreation():
+    with open('twitter_credential.json','w') as credentials:
+        Key = input('Please enter in your key:\n')
+        Key = Key.replace(' ','')
+        os.system('cls')
+        KeySecret = input('Please enter in your key secret:\n')
+        KeySecret = KeySecret.replace(' ','')
+        os.system('cls')
+        Token = input('Please enter in your token:\n')
+        Token = Token.replace(' ','')
+        os.system('cls')
+        TokenSecret = input('Please enter in your token secret:\n')
+        TokenSecret = TokenSecret.replace(' ','')
+        newCred = {"CONSUMER_KEY": Key,
+                "CONSUMER_SECRET": KeySecret,
+                "ACCESS_TOKEN": Token,
+                "ACCESS_SECRET": TokenSecret}
+        json.dump(newCred, credentials)
+        exit()
 def resetKeys():
     os.remove('twitter_credential.json')
     exit()
@@ -236,26 +255,11 @@ def resetKeys():
 def start():
     try:
         with open('twitter_credential.json','r') as p:
-            credentials = json.load(p)
+            if len(p.read()) == 0:
+                keyCreation()
+            #credentials = json.load(p)
     except FileNotFoundError:
-        with open('twitter_credential.json','w') as credentials:
-            Key = input('Please enter in your key:\n')
-            Key = Key.replace(' ','')
-            os.system('cls')
-            KeySecret = input('Please enter in your key secret:\n')
-            KeySecret = KeySecret.replace(' ','')
-            os.system('cls')
-            Token = input('Please enter in your token:\n')
-            Token = Token.replace(' ','')
-            os.system('cls')
-            TokenSecret = input('Please enter in your token secret:\n')
-            TokenSecret = TokenSecret.replace(' ','')
-            newCred = {"CONSUMER_KEY": Key,
-                    "CONSUMER_SECRET": KeySecret,
-                    "ACCESS_TOKEN": Token,
-                    "ACCESS_SECRET": TokenSecret}
-            json.dump(newCred, credentials)
-            exit()
+        keyCreation()
     def urlFunction():       
         url = input('Please enter the URL of the tweet that the giveaway will be focused on: (You can use /help for commands):\n')
         if url == '/help':
