@@ -69,11 +69,12 @@ class DNPTwitterGiveawayChooser:
         split = int(self.tweet_ratio * len(self.tweet.full_text.split()))
         tweet_text = ' '.join(self.tweet.full_text.split()[:split])
         print(tweet_text)
-        searchQuery = 'RT @{author}'.format(author=self.author)+ tweet_text
+        searchQuery = 'RT @{author} '.format(author=self.author) + self.tweet.full_text
+        print('TEST AUTHOR:' + self.author) #TEST
         print(searchQuery)
         tweetCount = 0
         tweetsPerQry = 100
-        print('[+] Retrieving all contest tweets for TWEET ID: ' + str(self.tweet_id) + '\n Tweet text: ' + str(self.tweet)) #Double check
+        print('[+] Retrieving all contest tweets for TWEET ID: ' + str(self.tweet_id) + '\n Tweet text: ' + str(self.tweet.full_text))
         print("[*] Downloading max {0} tweets".format(maxTweets))
         with open(self.filename,'w') as f:    
             while tweetCount < maxTweets:
@@ -81,6 +82,7 @@ class DNPTwitterGiveawayChooser:
                     if(max_id <= 0):
                         if(not sinceId):
                             new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry,)
+                            #print(new_tweets)
                         else:
                             new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry, since_id=sinceId)
                     else:
@@ -158,23 +160,22 @@ class DNPTwitterGiveawayChooser:
             while len(self.winner_list) < self.winner_count:
                 for user in random_users:
                     participant_eligible = False
-                    for members in self.members_to_follow:
-                        for member in members:
-                            if self.check_relationship(user_a=member, user_b=user, verbose=False):
-                                participant_eligible=True
-                            else:
-                                self.check_relationship(user_a=member, user_b=user, verbose=False)
-                                participant_eligible=False
-                                print(F'[0xFF] {user} is not following {member} - REROLLING... F\'s')
-                                self.remove_user(self.users,user)
-                                random_users.remove(user)
-                                new_user = self.users.sample(1).values[0]
-                                print(F'[+] Adding {new_user} to eligible list and checking followers')
-                                random_users.append(new_user)
-                                break
+                    for member in self.members_to_follow: #REMOVED UNNECESSARY FOR LOOP
+                        if self.check_relationship(user_a=member, user_b=user, verbose=False):
+                            participant_eligible=True
+                        else:
+                            self.check_relationship(user_a=member, user_b=user, verbose=False)
+                            participant_eligible=False
+                            print(F'[0xFF] {user} is not following {member} - REROLLING... F\'s')
+                            self.remove_user(self.users,user)
+                            random_users.remove(user)
+                            new_user = self.users.sample(1).values[0]
+                            print(F'[+] Adding {new_user} to eligible list and checking followers')
+                            random_users.append(new_user)
+                            break
                     if participant_eligible and user not in self.winner_list:
                         self.winner_list.append(user)
-                        members = ','.join(self.members_to_follow[0])
+                        member = ','.join(self.members_to_follow[0])
                         print(F"[W {str(len(self.winner_list))}/{str(self.winner_count)}] - {user}")
         except Exception as e:
             print(F'[!] No more users to choose from {e}')
