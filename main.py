@@ -1,11 +1,22 @@
 import json
 import re
 import time
+import os
+import sys
 
-import pyfiglet
-import jsonpickle
-import pandas as pd
-import tweepy
+try:
+    import pyfiglet
+    import jsonpickle
+    import pandas as pd
+    import tweepy
+except ImportError:
+    import subprocess
+    print('worked')
+    subprocess.call([sys.executable, "-m", "pip", "install", 'pyfiglet'])
+    subprocess.call([sys.executable, "-m", "pip", "install", 'jsonpickle'])
+    subprocess.call([sys.executable, "-m", "pip", "install", 'pandas'])
+    subprocess.call([sys.executable, "-m", "pip", "install", 'tweepy'])
+    os.system('cls')
 
 class DNPTwitterGiveawayChooser:
 
@@ -60,7 +71,7 @@ class DNPTwitterGiveawayChooser:
             return digit.group(0)
     def get_tweet_text_by_id(self, tweet_id=None):
         if tweet_id:
-            print(tweet_id)
+            #print(tweet_id)
             return self.api.get_status(tweet_id, tweet_mode='extended')
     def get_all_tweets(self, max_id=-1,max_tweets=10000000, write_file=False):
         sinceId = None
@@ -70,8 +81,6 @@ class DNPTwitterGiveawayChooser:
         tweet_text = ' '.join(self.tweet.full_text.split()[:split])
         print(tweet_text)
         searchQuery = 'RT @{author} '.format(author=self.author) + self.tweet.full_text
-        print('TEST AUTHOR:' + self.author) #TEST
-        print(searchQuery)
         tweetCount = 0
         tweetsPerQry = 100
         print('[+] Retrieving all contest tweets for TWEET ID: ' + str(self.tweet_id) + '\n Tweet text: ' + str(self.tweet.full_text))
@@ -211,15 +220,60 @@ class DNPTwitterGiveawayChooser:
                         video_url = vid_info['url']
         if video_url:
             return video_url
-url = 'https://twitter.com/DNPthree/status/1204526093459431425?s=20'
-members_to_follow = ['dnpthree']
-dnp_giveaway = DNPTwitterGiveawayChooser(tweet_url=url,
-                                         choose_winner=True,
-                                         winner_count=1,
-                                         tweet_ratio=.95,
-                                         filename='50_5.csv',
-                                         autorun=True,
-                                         query_delay=0,
-                                         suspense_time=0,
-                                         members_to_follow=members_to_follow,
-                                         contest_name='Sintra')
+
+def resetKeys():
+    os.remove('twitter_credential.json')
+    exit()
+    
+def start():
+    try:
+        with open('twitter_credential.json','r') as p:
+            credentials = json.load(p)
+    except FileNotFoundError:
+        with open('twitter_credential.json','w') as credentials:
+            Key = input('Please enter in your key:\n')
+            Key = Key.replace(' ','')
+            os.system('cls')
+            KeySecret = input('Please enter in your key secret:\n')
+            KeySecret = KeySecret.replace(' ','')
+            os.system('cls')
+            Token = input('Please enter in your token:\n')
+            Token = Token.replace(' ','')
+            os.system('cls')
+            TokenSecret = input('Please enter in your token secret:\n')
+            TokenSecret = TokenSecret.replace(' ','')
+            newCred = {"CONSUMER_KEY": Key,
+                    "CONSUMER_SECRET": KeySecret,
+                    "ACCESS_TOKEN": Token,
+                    "ACCESS_SECRET": TokenSecret}
+            json.dump(newCred, credentials)
+            exit()
+    def urlFunction():       
+        url = input('Please enter in the target tweet the giveaway will be centered around (You can use /help for commands):\n')
+        if url == '/help':
+            print('/keys         Goes into resetting your keys.\n/clear         Clears the command prompt.\n')
+            urlFunction()
+        if url == '/keys':
+            os.system('cls')
+            resetKeys()
+            exit()
+        if url == '/clear':
+            os.system('cls')
+            exit()
+        cycle = input('How many people are required to be followed in order for the contestants to be eligible?:\n')
+        members_to_follow = []
+        for loop in range(1, int(cycle)+1):
+            followers = input('Please input the username of the person required to be followed ({}/{}):\n'.format(str(loop), str(cycle)))
+            members_to_follow.append(followers)
+        dnp_giveaway = DNPTwitterGiveawayChooser(tweet_url=url,
+                                                choose_winner=True,
+                                                winner_count=1,
+                                                tweet_ratio=.95,
+                                                filename='50_5.csv',
+                                                autorun=True,
+                                                query_delay=0,
+                                                suspense_time=0,
+                                                members_to_follow=members_to_follow,
+                                                contest_name='Sintra')
+    urlFunction()
+start()
