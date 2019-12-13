@@ -169,23 +169,31 @@ class DNPTwitterGiveawayChooser:
             while len(self.winner_list) < self.winner_count:
                 for user in random_users:
                     participant_eligible = False
-                    for member in self.members_to_follow: #REMOVED UNNECESSARY FOR LOOP
-                        if self.check_relationship(user_a=member, user_b=user, verbose=False):
-                            participant_eligible=True
-                        else:
-                            self.check_relationship(user_a=member, user_b=user, verbose=False)
-                            participant_eligible=False
-                            print(F'[0xFF] {user} is not following {member} - REROLLING... F\'s')
-                            self.remove_user(self.users,user)
-                            random_users.remove(user)
-                            new_user = self.users.sample(1).values[0]
-                            print(F'[+] Adding {new_user} to eligible list and checking followers')
-                            random_users.append(new_user)
-                            break
-                    if participant_eligible and user not in self.winner_list:
+                    if len(self.members_to_follow) != 0:
+                        for member in self.members_to_follow: #REMOVED UNNECESSARY FOR LOOP
+                            if self.check_relationship(user_a=member, user_b=user, verbose=False):
+                                participant_eligible=True
+                            else:
+                                self.check_relationship(user_a=member, user_b=user, verbose=False)
+                                participant_eligible=False
+                                print(F'[0xFF] {user} is not following {member} - REROLLING... F\'s')
+                                self.remove_user(self.users,user)
+                                random_users.remove(user)
+                                new_user = self.users.sample(1).values[0]
+                                print(F'[+] Adding {new_user} to eligible list and checking followers')
+                                random_users.append(new_user)
+                                break
+                        if participant_eligible and user not in self.winner_list:
+                            self.winner_list.append(user)
+                            member = ','.join(self.members_to_follow[0])
+                            print(F"[W {str(len(self.winner_list))}/{str(self.winner_count)}] - {user}")
+                    else:
+                        participant_eligible = True
                         self.winner_list.append(user)
                         member = ','.join(self.members_to_follow[0])
                         print(F"[W {str(len(self.winner_list))}/{str(self.winner_count)}] - {user}")
+                        print('test')
+                        break
         except Exception as e:
             print(F'[!] No more users to choose from {e}')
             pass
@@ -262,9 +270,10 @@ def start():
             exit()
         cycle = input('How many people are required to be followed in order for the contestants to be eligible?:\n')
         members_to_follow = []
-        for loop in range(1, int(cycle)+1):
-            followers = input('Please input the username of the person required to be followed ({}/{}):\n'.format(str(loop), str(cycle)))
-            members_to_follow.append(followers)
+        if int(cycle) > 0:
+            for loop in range(1, int(cycle)+1):
+                followers = input('Please input the username of the person required to be followed ({}/{}):\n'.format(str(loop), str(cycle)))
+                members_to_follow.append(followers)
         dnp_giveaway = DNPTwitterGiveawayChooser(tweet_url=url,
                                                 choose_winner=True,
                                                 winner_count=1,
