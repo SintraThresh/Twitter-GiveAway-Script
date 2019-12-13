@@ -128,7 +128,7 @@ class DNPTwitterGiveawayChooser:
             self.final_df = df
         if users_who_retweeted.any():
             users_who_retweeted.reset_index(drop=True, inplace=True)
-            print("[*] %s users have benn entered into the drawing" % len(users_who_retweeted))
+            print("[*] %s users have been entered into the drawing" % len(users_who_retweeted))
             if show_names:
                 print('[*] Showing names of contestants...')
                 print(users_who_retweeted)
@@ -249,7 +249,7 @@ def start():
             json.dump(newCred, credentials)
             exit()
     def urlFunction():       
-        url = input('Please enter in the target tweet the giveaway will be centered around (You can use /help for commands):\n')
+        url = input('Please enter the URL of the tweet that the giveaway will be focused on: (You can use /help for commands):\n')
         if url == '/help':
             print('/keys         Goes into resetting your keys.\n/clear         Clears the command prompt.\n')
             urlFunction()
