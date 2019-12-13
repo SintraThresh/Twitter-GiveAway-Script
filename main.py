@@ -73,7 +73,7 @@ class DNPTwitterGiveawayChooser:
         print(searchQuery)
         tweetCount = 0
         tweetsPerQry = 100
-        #print('[+] Retrieving all contest tweets for TWEET ID: {tweet_id}\n Tweet text: {text}'.format(text=self.tweet_id))
+        print('[+] Retrieving all contest tweets for TWEET ID: ' + str(self.tweet_id) + '\n Tweet text: ' + str(self.tweet))
         print("[*] Downloading max {0} tweets".format(maxTweets))
         with open(self.filename,'w') as f:    
             while tweetCount < maxTweets:
