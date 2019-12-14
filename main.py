@@ -242,6 +242,7 @@ def keyCreation():
         os.system('cls')
         TokenSecret = input('Please enter in your token secret:\n')
         TokenSecret = TokenSecret.replace(' ','')
+        os.system('cls')
         newCred = {"CONSUMER_KEY": Key,
                 "CONSUMER_SECRET": KeySecret,
                 "ACCESS_TOKEN": Token,
