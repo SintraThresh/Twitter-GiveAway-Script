@@ -18,19 +18,19 @@ except ImportError:
     subprocess.call([sys.executable, "-m", "pip", "install", 'tweepy'])
     os.system('cls')
 
-class DNPTwitterGiveawayChooser:
+class TwitterGiveawayChooser:
 
     def __init__(self,
                  tweet_url=None,
                  creds_file='twitter_credential.json',
                  filename='giveaway.csv',
-                 contest_name='DNP3 Giveaway',
+                 contest_name='',
                  query_delay=0,
                  suspense_time=10,
                  choose_winner=False,
                  show_names=False,
                  autorun=True,
-                 members_to_follow=['dnpthree'],
+                 members_to_follow=[''],
                  verbose=False,
                  tweet_ratio=.95,
                  wait_on_rate_limit=False,
@@ -266,20 +266,27 @@ def start():
         if url == '/help':
             print('/keys         Goes into resetting your keys.\n/clear         Clears the command prompt.\n')
             urlFunction()
-        if url == '/keys':
+        elif url == '/keys':
             os.system('cls')
             resetKeys()
             exit()
-        if url == '/clear':
+        elif url == '/clear':
             os.system('cls')
             exit()
+        else:
+            os.system('cls')
+        contName = input('Name this contest:\n')
+        if len(contName) >= 1:
+            os.system('cls')
         cycle = input('How many people are required to be followed in order for the contestants to be eligible?:\n')
+        if len(cycle) >= 1:
+            os.system('cls')
         members_to_follow = []
         if int(cycle) > 0:
             for loop in range(1, int(cycle)+1):
                 followers = input('Please input the username of the person required to be followed ({}/{}):\n'.format(str(loop), str(cycle)))
                 members_to_follow.append(followers)
-        dnp_giveaway = DNPTwitterGiveawayChooser(tweet_url=url,
+        giveaway = TwitterGiveawayChooser(tweet_url=url,
                                                 choose_winner=True,
                                                 winner_count=1,
                                                 tweet_ratio=.95,
@@ -288,6 +295,6 @@ def start():
                                                 query_delay=0,
                                                 suspense_time=0,
                                                 members_to_follow=members_to_follow,
-                                                contest_name='Sintra')
+                                                contest_name=contName)
     urlFunction()
 start()
