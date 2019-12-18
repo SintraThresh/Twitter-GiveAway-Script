@@ -1,7 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import json
 import GiveAway
-import time
 
 class winnerWindow():
     def winnerFunc(self, thirdWindow, winners):
