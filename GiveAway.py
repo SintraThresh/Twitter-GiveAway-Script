@@ -114,7 +114,7 @@ class TwitterGiveawayChooser:
         print('[*] File written to %s' % self.filename)
 
     def get_users(self, show_names=True, from_file=False):
-        users_who_retweeted = None
+        users_who_retweeted = None       #Responsible for the list of all participants
         print('[*] Identifying Users who Retweeted')
         if from_file:
             retweets = pd.read_json(self.filename, lines=True)
