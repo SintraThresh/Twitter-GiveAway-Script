@@ -188,10 +188,7 @@ class TwitterGiveawayChooser:
                     else:
                         participant_eligible = True
                         self.winner_list.append(user)
-                        member = ','.join(self.members_to_follow[0])
                         print(F"[W {str(len(self.winner_list))}/{str(self.winner_count)}] - {user}")
-                        print('test')
-                        break
         except Exception as e:
             print(F'[!] No more users to choose from {e}')
             pass
@@ -240,8 +237,8 @@ def GStart(tweetlink, followers):
                                 suspense_time=0,
                                 members_to_follow=members_to_follow,
                                 contest_name='')
-    for rWinner in Tgiveaway.winner_list:
-        pass
-    return rWinner
+    #for rWinner in Tgiveaway.winner_list:
+   #     pass
+    return Tgiveaway.winner_list
 
 

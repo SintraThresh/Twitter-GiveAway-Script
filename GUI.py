@@ -4,23 +4,53 @@ import GiveAway
 
 class winnerWindow():
     def winnerFunc(self, thirdWindow, winners):
-        thirdWindow.setObjectName('WinnerWindow')
-        thirdWindow.resize(700, 250)
-        thirdWindow.setMinimumSize(QtCore.QSize(700, 250))
-        thirdWindow.setMaximumSize(QtCore.QSize(700, 250))
-        self.thirdWindowCenter = QtWidgets.QWidget(thirdWindow)
-        self.thirdWindowCenter.setObjectName('ThirdWindowCenter')
-        self.labelWin = QtWidgets.QLabel(self.thirdWindowCenter)
-        self.labelWin.setGeometry(QtCore.QRect(0, 0, 700, 180))
-        self.labelWin.setMargin(50)
+        if len(winners) > 1:
+            print(winners)
+        else:
+            winners = winners[0]
+            thirdWindow.setObjectName('WinnerWindow')
+            thirdWindow.resize(700, 250)
+            thirdWindow.setMinimumSize(QtCore.QSize(700, 250))
+            thirdWindow.setMaximumSize(QtCore.QSize(700, 250))
+            self.thirdWindowCenter = QtWidgets.QWidget(thirdWindow)
+            self.thirdWindowCenter.setObjectName('ThirdWindowCenter')
+            self.labelWin = QtWidgets.QLabel(self.thirdWindowCenter)
+            self.labelWin.setGeometry(QtCore.QRect(0, 0, 700, 180))
+            self.labelWin.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignTop)
+            self.hypeLink = QtWidgets.QLabel(self.thirdWindowCenter)
+            self.hypeLink.setGeometry(QtCore.QRect(0, 155, 700, 70))
 
 
-        thirdWindow.setCentralWidget(self.thirdWindowCenter)
-        translate = QtCore.QCoreApplication.translate
-        self.labelWin.setText(translate('thirdWindow', '{}'.format(winners)))
-        self.winnerFont = QtGui.QFont()
-        self.winnerFont.setBold(True)
-        self.labelWin.setFont(self.winnerFont)
+            thirdWindow.setCentralWidget(self.thirdWindowCenter)
+            translate = QtCore.QCoreApplication.translate
+            self.labelWin.setText(translate('thirdWindow', '{}'.format(winners)))
+            self.winnerFont = QtGui.QFont()
+            self.winnerFont.setBold(True)
+            self.winnerFont.setPointSize(55)
+            self.labelWin.setFont(self.winnerFont)
+            self.hypeLink.setOpenExternalLinks(True)
+            self.hypeLink.setText(f'<a href="https://www.twitter.com/{winners}">@{winners}')
+            self.hypeLink.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignTop)
+            self.hypeFont = QtGui.QFont()
+            self.hypeFont.setPointSize(16)
+            self.hypeLink.setFont(self.hypeFont)
+
+class Worker(QtCore.QThread):
+    all_done = QtCore.pyqtSignal(object)
+    def __init__(self, tweetLink, followers):
+        super(Worker, self).__init__()
+        self.tweetLink = tweetLink
+        self.followers = followers
+
+    def next_step(self):
+        winners = GiveAway.GStart(self.tweetLink, self.followers)
+        self.all_done.emit(winners)
+    def run(self):
+        self.next_step()
+        #thirdWindow = QtWidgets.QMainWindow()
+        #win = winnerWindow()
+        #win.winnerFunc(thirdWindow, winners)
+        #thirdWindow.show()
 
 class keyWindow():
     def keyWinFunc(self, secondWindow):
@@ -73,8 +103,6 @@ class keyWindow():
         self.saveButton.setText(translate("secondWindow", 'Save'))
         QtCore.QMetaObject.connectSlotsByName(secondWindow)
 
-        #TODOLIST
-        # set self.label.setopenexternallinks(true) AND remember html hyperlink tags
 
         try:
             with open('twitter_credential.json', 'r') as reInput1:
@@ -175,8 +203,12 @@ class Ui_MainWindow(object):
         followers = []
         for followerItem in range(0, self.listWidget.count()):
             followers.append(self.listWidget.item(followerItem).text())
-        winners = GiveAway.GStart(tweetLink, followers)
-        self.winFunc(winners)
+        #winners = GiveAway.GStart(tweetLink, followers)
+        #self.winFunc(winners)
+        self.worker = Worker(tweetLink, followers)
+        self.worker.start()
+        self.worker.all_done.connect(self.winFunc)
+
         
 
     def keyChecker(self):
