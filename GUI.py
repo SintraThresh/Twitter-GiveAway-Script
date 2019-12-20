@@ -47,10 +47,6 @@ class Worker(QtCore.QThread):
         self.all_done.emit(winners)
     def run(self):
         self.next_step()
-        #thirdWindow = QtWidgets.QMainWindow()
-        #win = winnerWindow()
-        #win.winnerFunc(thirdWindow, winners)
-        #thirdWindow.show()
 
 class keyWindow():
     def keyWinFunc(self, secondWindow):
@@ -203,8 +199,6 @@ class Ui_MainWindow(object):
         followers = []
         for followerItem in range(0, self.listWidget.count()):
             followers.append(self.listWidget.item(followerItem).text())
-        #winners = GiveAway.GStart(tweetLink, followers)
-        #self.winFunc(winners)
         self.worker = Worker(tweetLink, followers)
         self.worker.start()
         self.worker.all_done.connect(self.winFunc)
