@@ -170,7 +170,6 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
     def pressed(self):
         copiedText = self.followerEdit.text()
-        print(copiedText)
         self.listWidget.insertItem(1, str(copiedText))
         self.followerEdit.clear()
     def clicked(self):
@@ -188,14 +187,19 @@ class Ui_MainWindow(object):
         self.tweetInput.setText(_translate("MainWindow", "Required To Follow:"))
 
     def winFunc(self, winners):
+        self.pushButton.setDisabled(False)
+        self.pushButton_2.setDisabled(False)
         self.thirdWindow = QtWidgets.QMainWindow()
         self.win = winnerWindow()
         self.win.winnerFunc(self.thirdWindow, winners)
         self.thirdWindow.show()
 
     def start(self):
+        self.lineEdit.setFocus(False)
+        self.tweetInput.setFocus(False)
+        self.pushButton.setDisabled(True)
+        self.pushButton_2.setDisabled(True)
         tweetLink = self.lineEdit.text()
-        print('tweet: ' + tweetLink)
         followers = []
         for followerItem in range(0, self.listWidget.count()):
             followers.append(self.listWidget.item(followerItem).text())
