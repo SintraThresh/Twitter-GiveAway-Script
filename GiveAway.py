@@ -36,7 +36,7 @@ class TwitterGiveawayChooser:
         self.creds = json.load(open(creds_file))
         self.auth = tweepy.OAuthHandler(self.creds['CONSUMER_KEY'],self.creds['CONSUMER_SECRET'])
         self.auth.set_access_token(self.creds['ACCESS_TOKEN'], self.creds['ACCESS_SECRET'])
-        self.api = tweepy.API(self.auth, wait_on_rate_limit = wait_on_rate_limit, wait_on_rate_limit_notify=True)
+        self.api = tweepy.API(self.auth, wait_on_rate_limit = wait_on_rate_limit)
         self.filename = filename
         self.tweet_id = None
         self.suspense_time= suspense_time
@@ -52,11 +52,10 @@ class TwitterGiveawayChooser:
         self.verbose = verbose
         self.tweet_ratio = tweet_ratio
         self.final_df = None
-        if tweet_url:
-            try:
-                self.tweet_id = self.id_from_url(tweet_url)
-            except Exception as e:
-                print(F'Could not process URL: {e}')
+
+        self.tweet_id = self.id_from_url(tweet_url)
+        if self.tweet_id == None:
+            raise KeyError([{'code': 144, 'message': 'No status found with that ID.'}])
         if self.tweet_id:
             self.tweet = self.get_tweet_text_by_id(int(self.tweet_id))
             self.author = self.tweet.author.screen_name
@@ -76,30 +75,33 @@ class TwitterGiveawayChooser:
         searchQuery = 'RT @{author} '.format(author=self.author) + self.tweet.full_text
         tweetCount = 0
         tweetsPerQry = 100
-        with open(self.filename,'w') as f:    
-            while tweetCount < maxTweets:
-                try:
-                    if(max_id <= 0):
-                        if(not sinceId):
-                            new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry,)
+        with open(self.filename,'w') as f:
+            try:    
+                while tweetCount < maxTweets:
+                    try:
+                        if(max_id <= 0):
+                            if(not sinceId):
+                                new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry,)
+                            else:
+                                new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry, since_id=sinceId)
                         else:
-                            new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry, since_id=sinceId)
-                    else:
-                        if(not sinceId):
-                            new_tweets = self.api.search(q=searchQuery,count=tweetsPerQry,max_id=str(max_id -1))
-                        else:
-                            new_tweets = self.api.search(q=searchQuery,count=tweetsPerQry,max_id=str(max_id - 1), since_id=sinceId)
-                    if not new_tweets:
+                            if(not sinceId):
+                                new_tweets = self.api.search(q=searchQuery,count=tweetsPerQry,max_id=str(max_id -1))
+                            else:
+                                new_tweets = self.api.search(q=searchQuery,count=tweetsPerQry,max_id=str(max_id - 1), since_id=sinceId)
+                        if not new_tweets:
+                            break
+                        for tweet in new_tweets:
+                            self.all_tweets.append(tweet._json)
+                            if write_file:
+                                f.write(jsonpickle.encode(tweet._json, unpicklable=False)+'\n')
+                        tweetCount += len(new_tweets)
+                        time.sleep(self.query_delay)
+                        max_id = new_tweets[-1].id
+                    except:
                         break
-                    for tweet in new_tweets:
-                        self.all_tweets.append(tweet._json)
-                        if write_file:
-                            f.write(jsonpickle.encode(tweet._json, unpicklable=False)+'\n')
-                    tweetCount += len(new_tweets)
-                    time.sleep(self.query_delay)
-                    max_id = new_tweets[-1].id
-                except:
-                    break
+            except tweepy.TweepError:
+                print('hi')
 
     def get_users(self, show_names=True, from_file=False):
         users_who_retweeted = None       #Responsible for the list of all participants
@@ -187,7 +189,12 @@ def GStart(tweetlink, followers):
                                     contest_name='')
         return Tgiveaway.winner_list
     except Exception as p:
-        f = ['failed']
-        print(p)
-        return f
+        if str(p) == "[{'code': 144, 'message': 'No status found with that ID.'}]":
+            return '|tweet|'
+        if str(p) == "[{'code': 32, 'message': 'Could not authenticate you.'}]":
+            return '|keys|'
+        if str(p) == "'NoneType' object has no attribute 'any'":
+            return '|rate|'
+        else:
+            return '|Error|'
 

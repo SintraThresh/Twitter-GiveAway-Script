@@ -158,6 +158,19 @@ class Ui_MainWindow(object):
         self.followerEdit.setObjectName("followerEdit")
         self.followerEdit.returnPressed.connect(self.pressed)
 
+        self.kError = QtWidgets.QLabel(self.centralwidget)
+        self.kError.setGeometry(QtCore.QRect(2, 90, 341, 16))
+        self.kError.setObjectName("kError")
+        self.tError = QtWidgets.QLabel(self.centralwidget)
+        self.tError.setGeometry(QtCore.QRect(2, 90, 341, 16))
+        self.tError.setObjectName("tError")
+        self.rError = QtWidgets.QLabel(self.centralwidget)
+        self.rError.setGeometry(QtCore.QRect(2, 90, 341, 16))
+        self.rError.setObjectName("rError")
+        self.error = QtWidgets.QLabel(self.centralwidget)
+        self.error.setGeometry(QtCore.QRect(2, 90, 341, 16))
+        self.error.setObjectName("error")
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 498, 21))
@@ -186,15 +199,47 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "Target Tweet Link:"))
         self.tweetInput.setText(_translate("MainWindow", "Required To Follow:"))
 
+        self.kError.setStyleSheet('color: red')
+        self.kError.hide()
+        self.kError.setText(_translate("MainWindow", "Key Error! Please re-check your keys."))
+        self.rError.setStyleSheet('color: red')
+        self.rError.setText(_translate("MainWindow", "Rate limit exceeded! Please try again in 15 minutes."))
+        self.rError.hide()
+        self.tError.setStyleSheet('color: red')
+        self.tError.setText(_translate("MainWindow", "Invalid Tweet link, please re-check your link."))
+        self.tError.hide()
+        self.error.setStyleSheet('color: red')
+        self.error.setText(_translate("MainWindow", "An error has occured, please try again."))
+        self.error.hide()
+
     def winFunc(self, winners):
-        self.pushButton.setDisabled(False)
-        self.pushButton_2.setDisabled(False)
-        self.thirdWindow = QtWidgets.QMainWindow()
-        self.win = winnerWindow()
-        self.win.winnerFunc(self.thirdWindow, winners)
-        self.thirdWindow.show()
+        _translate = QtCore.QCoreApplication.translate
+        if winners in ['|keys|', '|tweet|', '|rate|', '|Error|']:
+            self.pushButton.setDisabled(False)
+            self.pushButton_2.setDisabled(False)
+            if winners == '|keys|':
+                self.kError.show()
+            elif winners == '|tweet|':
+                self.tError.show()
+            elif winners == '|rate|':
+                self.rError.show()
+            elif winners == '|Error|':
+                self.error.show()
+        else:
+            self.pushButton.setDisabled(False)
+            self.pushButton_2.setDisabled(False)
+            self.thirdWindow = QtWidgets.QMainWindow()
+            self.win = winnerWindow()
+            self.win.winnerFunc(self.thirdWindow, winners)
+            self.thirdWindow.show()
+            self.pushButton.setDisabled(False)
+            self.pushButton_2.setDisabled(False)
 
     def start(self):
+        self.kError.hide()
+        self.rError.hide()
+        self.tError.hide()
+        self.error.hide()
         self.lineEdit.setFocus(False)
         self.tweetInput.setFocus(False)
         self.pushButton.setDisabled(True)
