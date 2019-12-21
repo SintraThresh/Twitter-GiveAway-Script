@@ -226,7 +226,7 @@ def GStart(tweetlink, followers):
         return Tgiveaway.winner_list
     except Exception as p:
         print(p)
-        if str(p) == "[{'code': 144, 'message': 'No status found with that ID.'}]":
+        if str(p) == "[{'code': 144, 'message': 'No status found with that ID.'}]" or str(p) == "'TwitterGiveawayChooser' object has no attribute 'author'":
             return '|tweet|'
         if str(p) == "[{'code': 32, 'message': 'Could not authenticate you.'}]":
             return '|keys|'
