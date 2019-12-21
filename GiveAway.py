@@ -53,7 +53,6 @@ class TwitterGiveawayChooser:
         self.tweet_ratio = tweet_ratio
         self.final_df = None
 
-        self.tweet_id = self.id_from_url(tweet_url)
         if self.tweet_id == None:
             raise KeyError([{'code': 144, 'message': 'No status found with that ID.'}])
         if self.tweet_id:
