@@ -53,8 +53,6 @@ class TwitterGiveawayChooser:
         self.tweet_ratio = tweet_ratio
         self.final_df = None
 
-        if self.tweet_id == None:
-            raise KeyError([{'code': 144, 'message': 'No status found with that ID.'}])
         if self.tweet_id:
             self.tweet = self.get_tweet_text_by_id(int(self.tweet_id))
             self.author = self.tweet.author.screen_name
@@ -71,6 +69,7 @@ class TwitterGiveawayChooser:
         sinceId = None
         max_id = max_id
         maxTweets = max_tweets
+        print(self.tweet)
         searchQuery = 'RT @{author} '.format(author=self.author) + self.tweet.full_text
         tweetCount = 0
         tweetsPerQry = 100
@@ -188,6 +187,7 @@ def GStart(tweetlink, followers):
                                     contest_name='')
         return Tgiveaway.winner_list
     except Exception as p:
+        print(p)
         if str(p) == "[{'code': 144, 'message': 'No status found with that ID.'}]":
             return '|tweet|'
         if str(p) == "[{'code': 32, 'message': 'Could not authenticate you.'}]":
