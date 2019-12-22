@@ -96,6 +96,7 @@ class TwitterGiveawayChooser:
                         if write_file:
                             f.write(jsonpickle.encode(tweet._json, unpicklable=False)+'\n')
                     tweetCount += len(new_tweets)
+                    #print(F'Tweets: {tweetCount}')
                     time.sleep(self.query_delay)
                     max_id = new_tweets[-1].id
                 except:
@@ -118,6 +119,7 @@ class TwitterGiveawayChooser:
                         if write_file:
                             f.write(jsonpickle.encode(tweet._json, unpicklable=False)+'\n')
                     tweetCount += len(new_tweets)
+                    #print(F'Tweets: {tweetCount}')
                     time.sleep(self.query_delay)
                     max_id = new_tweets[-1].id
                     break
