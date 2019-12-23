@@ -10,7 +10,6 @@ try:
     import tweepy
 except ImportError:
     import subprocess
-    print('worked')
     subprocess.call([sys.executable, "-m", "pip", "install", 'pyfiglet'])
     subprocess.call([sys.executable, "-m", "pip", "install", 'jsonpickle'])
     subprocess.call([sys.executable, "-m", "pip", "install", 'pandas'])
@@ -69,27 +68,20 @@ class TwitterGiveawayChooser:
             return digit.group(0)
     def get_tweet_text_by_id(self, tweet_id=None):
         if tweet_id:
-            #print(tweet_id)
             return self.api.get_status(tweet_id, tweet_mode='extended')
     def get_all_tweets(self, max_id=-1,max_tweets=10000000, write_file=False):
         sinceId = None
         max_id = max_id
         maxTweets = max_tweets
-        split = int(self.tweet_ratio * len(self.tweet.full_text.split()))
-        tweet_text = ' '.join(self.tweet.full_text.split()[:split])
-        print(tweet_text)
-        searchQuery = 'RT @{author} '.format(author=self.author) + self.tweet.full_text
+        searchQuery = F'RT @{self.author} '+ self.tweet.full_text
         tweetCount = 0
         tweetsPerQry = 100
-        print('[+] Retrieving all contest tweets for TWEET ID: ' + str(self.tweet_id) + '\n Tweet text: ' + str(self.tweet.full_text))
-        print("[*] Downloading max {0} tweets".format(maxTweets))
-        with open(self.filename,'w') as f:    
+        with open(self.filename,'w') as f:
             while tweetCount < maxTweets:
                 try:
                     if(max_id <= 0):
                         if(not sinceId):
-                            new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry,)
-                            #print(new_tweets)
+                            new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry)
                         else:
                             new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry, since_id=sinceId)
                     else:
@@ -98,24 +90,42 @@ class TwitterGiveawayChooser:
                         else:
                             new_tweets = self.api.search(q=searchQuery,count=tweetsPerQry,max_id=str(max_id - 1), since_id=sinceId)
                     if not new_tweets:
-                        print("[!] No more tweets found")
                         break
                     for tweet in new_tweets:
                         self.all_tweets.append(tweet._json)
                         if write_file:
                             f.write(jsonpickle.encode(tweet._json, unpicklable=False)+'\n')
                     tweetCount += len(new_tweets)
+                    print(F'Tweets: {tweetCount}')
                     time.sleep(self.query_delay)
-                    print("[*] Downloaded {0} tweets".format(tweetCount))
                     max_id = new_tweets[-1].id
-                except tweepy.TweepError as e:
-                    print("[!] Error: "+str(e))
+                except:
+                    half_tweet = int(len(self.tweet.full_text)/2)
+                    searchQuery = F'RT @{self.author} '+ self.tweet.full_text[0:half_tweet]
+                    if(max_id <= 0):
+                        if(not sinceId):
+                            new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry)
+                        else:
+                            new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry, since_id=sinceId)
+                    else:
+                        if(not sinceId):
+                            new_tweets = self.api.search(q=searchQuery,count=tweetsPerQry,max_id=str(max_id -1))
+                        else:
+                            new_tweets = self.api.search(q=searchQuery,count=tweetsPerQry,max_id=str(max_id - 1), since_id=sinceId)
+                    if not new_tweets:
+                        break
+                    for tweet in new_tweets:
+                        self.all_tweets.append(tweet._json)
+                        if write_file:
+                            f.write(jsonpickle.encode(tweet._json, unpicklable=False)+'\n')
+                    tweetCount += len(new_tweets)
+                    print(F'Tweets: {tweetCount}')
+                    time.sleep(self.query_delay)
+                    max_id = new_tweets[-1].id
                     break
-        print('[*] File written to %s' % self.filename)
 
     def get_users(self, show_names=True, from_file=False):
         users_who_retweeted = None       #Responsible for the list of all participants
-        print('[*] Identifying Users who Retweeted')
         if from_file:
             retweets = pd.read_json(self.filename, lines=True)
             parsed_users = pd.concat([pd.DataFrame(x) for x in retweets.user], sort=False)
@@ -126,18 +136,10 @@ class TwitterGiveawayChooser:
             self.final_df = df
         if users_who_retweeted.any():
             users_who_retweeted.reset_index(drop=True, inplace=True)
-            print("[*] %s users have been entered into the drawing" % len(users_who_retweeted))
-            if show_names:
-                print('[*] Showing names of contestants...')
-                print(users_who_retweeted)
             return users_who_retweeted
     @staticmethod
     def name_check(series, name):
         name = str.lower(name)
-        if series[series.str.contains(name)].any():
-            print('%s is entered in the giveaway! :)' % name)
-        else:
-            print('%s is not entered in the giveaway :(' % name)
     def check_relationship(self, user_a=None, user_b=None, verbose=False):
         """
         user_a: Person you want to check is being followed
@@ -145,22 +147,13 @@ class TwitterGiveawayChooser:
         """
         friends = self.api.show_friendship(source_screen_name=user_a, target_screen_name=user_b)
         following = friends[1].following
-        if verbose:
-            if following:
-                print(F'{user_b} is following {user_a}!')
-            else:
-                print(F'{user_b} is NOT following {user_a}!')
         return following
     def remove_user(self, series, user):
         try:
             index_position = series[series == user].index[0]
-            print(F'[-] {series.pop(index_position)} removed from eligible list')
-        except Exception as e:
-            if self.verbose:
-                print(F'[!!] Error: {e}')
+        except:
+            pass
     def choose_winners(self):
-        print("[*] Randomly selecting winner...")
-        print("[*] Choosing winner(s) for {contest_name}".format(contest_name=self.contest_name))
         time.sleep(self.suspense_time)
         random_users=list(self.users.sample(self.winner_count).values)
         try:
@@ -174,21 +167,16 @@ class TwitterGiveawayChooser:
                             else:
                                 self.check_relationship(user_a=member, user_b=user, verbose=False)
                                 participant_eligible=False
-                                print(F'[0xFF] {user} is not following {member} - REROLLING... F\'s')
-                                self.remove_user(self.users,user)
                                 random_users.remove(user)
                                 new_user = self.users.sample(1).values[0]
-                                print(F'[+] Adding {new_user} to eligible list and checking followers')
                                 random_users.append(new_user)
                                 break
                         if participant_eligible and user not in self.winner_list:
                             self.winner_list.append(user)
                             member = ','.join(self.members_to_follow[0])
-                            print(F"[W {str(len(self.winner_list))}/{str(self.winner_count)}] - {user}")
                     else:
                         participant_eligible = True
                         self.winner_list.append(user)
-                        print(F"[W {str(len(self.winner_list))}/{str(self.winner_count)}] - {user}")
         except Exception as e:
             print(F'[!] No more users to choose from {e}')
             pass
@@ -209,7 +197,6 @@ class TwitterGiveawayChooser:
         self.users = self.get_users(show_names=self.show_names)
         if self.choose_winner:
             self.choose_winners()
-            self.present_winner()
         return
     def retrieve_video_url(self):
         """Retrieves video URL - make sure to set process to False"""
@@ -224,21 +211,30 @@ class TwitterGiveawayChooser:
         if video_url:
             return video_url
 
-def GStart(tweetlink, followers):
-    url = tweetlink
-    members_to_follow = followers
-    Tgiveaway = TwitterGiveawayChooser(tweet_url=url,
-                                choose_winner=True,
-                                winner_count=1,
-                                tweet_ratio=.95,
-                                filename='50_5.csv',
-                                autorun=True,
-                                query_delay=0,
-                                suspense_time=0,
-                                members_to_follow=members_to_follow,
-                                contest_name='')
-    #for rWinner in Tgiveaway.winner_list:
-   #     pass
-    return Tgiveaway.winner_list
-
+def GStart(tweetlink, followers, winCount):
+    try:
+        url = tweetlink
+        members_to_follow = followers
+        winCount = int(winCount)
+        Tgiveaway = TwitterGiveawayChooser(tweet_url=url,
+                                    choose_winner=True,
+                                    winner_count=winCount,
+                                    tweet_ratio=.95,
+                                    filename='50_5.csv',
+                                    autorun=True,
+                                    query_delay=0,
+                                    suspense_time=0,
+                                    members_to_follow=members_to_follow,
+                                    contest_name='')
+        return Tgiveaway.winner_list
+    except Exception as p:
+        print(p)
+        if str(p) == "[{'code': 144, 'message': 'No status found with that ID.'}]" or str(p) == "'TwitterGiveawayChooser' object has no attribute 'author'":
+            return '|tweet|'
+        if str(p) == "[{'code': 32, 'message': 'Could not authenticate you.'}]":
+            return '|keys|'
+        if str(p) == "'NoneType' object has no attribute 'any'":
+            return '|rate|'
+        else:
+            return '|Error|'
 
