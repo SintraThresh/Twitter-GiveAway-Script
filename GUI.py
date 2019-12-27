@@ -12,13 +12,34 @@ class winnerWindow():
             thirdWindow.setMinimumSize(QtCore.QSize(300, 500))
             thirdWindow.setMaximumSize(QtCore.QSize(300, 500))
             self.thirdWindowCenter = QtWidgets.QWidget(thirdWindow)
-            self.list = QtWidgets.QTextBrowser(thirdWindow)
-            self.list.setGeometry(10, 10, 280, 480)
+            #self.list = QtWidgets.QTextBrowser(thirdWindow)
+            #self.list.setGeometry(10, 10, 280, 480)
+            self.groupbox = QtWidgets.QGroupBox(self.thirdWindowCenter)
+            self.groupbox.setGeometry(0,0, 280, 500)
+            self.formLayout = QtWidgets.QFormLayout(self.thirdWindowCenter)
+            self.formLayout.setContentsMargins(0,0,0,0)
+            thirdWindow.setCentralWidget(self.thirdWindowCenter)
+            self.cycle = 0
             for sepWinners in winners:
-                sortedWinners = F'1. {sepWinners}'
-                self.list.insertItem(1, sortedWinners)
-            self.list.clicked.connect(self.openBrowser)
-        else:
+                self.cycle +=1
+                labeling = QtWidgets.QLabel()
+                labeling.setText(f'{self.cycle}.<a href="https://www.twitter.com/{sepWinners}">{sepWinners}')
+                labeling.setOpenExternalLinks(True)
+                self.labelingFont = QtGui.QFont()
+                self.labelingFont.setPointSize(15)
+                labeling.setFont(self.labelingFont)
+
+                self.formLayout.addRow(labeling)
+            self.groupbox.setLayout(self.formLayout)
+            self.scroll = QtWidgets.QScrollArea(self.thirdWindowCenter)
+            self.scroll.setGeometry(0,0, 300, 500)
+            self.scroll.setWidget(self.groupbox)
+            self.scroll.setWidgetResizable(True)
+
+            #for sepWinners in winners:
+            #    sortedWinners = F'1. {sepWinners}'
+            #    self.list.insertItem(1, sortedWinners)
+        elif len(winners) == 1:
             winners = winners[0]
             thirdWindow.setObjectName('WinnerWindow')
             thirdWindow.resize(700, 250)
@@ -46,10 +67,8 @@ class winnerWindow():
             self.hypeFont = QtGui.QFont()
             self.hypeFont.setPointSize(16)
             self.hypeLink.setFont(self.hypeFont)
-    def openBrowser(self):
-        parsedList = self.list.item(self.list.currentRow())
-        webbrowser.open(parsedList.text()[3::])
-        #webbrowser.open('https://twitter.com/' + self.list.currentRow.text())
+        else:
+            print(len(winners))
 
 class Worker(QtCore.QThread):
     all_done = QtCore.pyqtSignal(object)

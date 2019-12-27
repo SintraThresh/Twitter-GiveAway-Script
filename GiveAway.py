@@ -156,6 +156,9 @@ class TwitterGiveawayChooser:
     def choose_winners(self):
         time.sleep(self.suspense_time)
         random_users=list(self.users.sample(self.winner_count).values)
+        random_list = list(self.users)
+        for rando in random_users:
+            random_list.remove(rando)
         try:
             while len(self.winner_list) < self.winner_count:
                 for user in random_users:
@@ -165,11 +168,14 @@ class TwitterGiveawayChooser:
                             if self.check_relationship(user_a=member, user_b=user, verbose=False):
                                 participant_eligible=True
                             else:
-                                self.check_relationship(user_a=member, user_b=user, verbose=False)
                                 participant_eligible=False
                                 random_users.remove(user)
-                                new_user = self.users.sample(1).values[0]
-                                random_users.append(new_user)
+                                dFrame = pd.DataFrame(random_list)
+                                new_user = dFrame.sample(1).values[0]
+                                for nonList in new_user:
+                                    pass
+                                random_list.remove(nonList)
+                                random_users.append(nonList)
                                 break
                         if participant_eligible and user not in self.winner_list:
                             self.winner_list.append(user)
