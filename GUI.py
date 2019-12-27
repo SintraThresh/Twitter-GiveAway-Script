@@ -72,14 +72,15 @@ class winnerWindow():
 
 class Worker(QtCore.QThread):
     all_done = QtCore.pyqtSignal(object)
-    def __init__(self, tweetLink, followers, winCount):
+    def __init__(self, tweetLink, followers, winCount, tAgeDays):
         super(Worker, self).__init__()
         self.tweetLink = tweetLink
         self.followers = followers
         self.winCount = winCount
+        self.tAgeDays = tAgeDays
 
     def next_step(self):
-        winners = GiveAway.GStart(self.tweetLink, self.followers, self.winCount)
+        winners = GiveAway.GStart(self.tweetLink, self.followers, self.winCount, self.tAgeDays)
         self.all_done.emit(winners)
     def run(self):
         self.next_step()
@@ -183,6 +184,10 @@ class Ui_MainWindow(object):
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(0, 5, 101, 16))
         self.label.setObjectName("label")
+        self.tAge = QtWidgets.QLabel(self.centralwidget)
+        self.tAge.setGeometry(QtCore.QRect(80, 95, 110, 16))
+        self.tAge_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.tAge_edit.setGeometry(QtCore.QRect(80, 115, 100, 20))
         self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit.setGeometry(QtCore.QRect(2, 25, 341, 20))
         self.lineEdit.setObjectName("lineEdit")
@@ -242,6 +247,7 @@ class Ui_MainWindow(object):
         self.tweetInput.setText(_translate("MainWindow", "Required To Follow:"))
         self.winnerCountLabel.setText(_translate("MainWindow", "# Winners"))
         self.winnerCountEdit.setText(_translate("MainWindow", '1'))
+        self.tAge.setText(_translate("MainWindow", 'Account Age (in days)'))
 
         self.kError.setStyleSheet('color: red')
         self.kError.hide()
@@ -290,10 +296,11 @@ class Ui_MainWindow(object):
         self.pushButton_2.setDisabled(True)
         tweetLink = self.lineEdit.text()
         winCount = self.winnerCountEdit.text()
+        tAgeDays = self.tAge_edit.text()
         followers = []
         for followerItem in range(0, self.listWidget.count()):
             followers.append(self.listWidget.item(followerItem).text())
-        self.worker = Worker(tweetLink, followers, winCount)
+        self.worker = Worker(tweetLink, followers, winCount, tAgeDays)
         self.worker.start()
         self.worker.all_done.connect(self.winFunc)
 

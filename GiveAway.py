@@ -3,6 +3,8 @@ import re
 import time
 import sys
 
+import datetime
+
 try:
     import pyfiglet
     import jsonpickle
@@ -31,7 +33,8 @@ class TwitterGiveawayChooser:
                  verbose=False,
                  tweet_ratio=.95,
                  wait_on_rate_limit=False,
-                 winner_count=1):
+                 winner_count=1,
+                 tAgeDays = None):
         self.user = None
         self.creds = json.load(open(creds_file))
         self.auth = tweepy.OAuthHandler(self.creds['CONSUMER_KEY'],self.creds['CONSUMER_SECRET'])
@@ -52,6 +55,7 @@ class TwitterGiveawayChooser:
         self.verbose = verbose
         self.tweet_ratio = tweet_ratio
         self.final_df = None
+        self.tAgeDays = tAgeDays
         if tweet_url:
             try:
                 self.tweet_id = self.id_from_url(tweet_url)
@@ -177,12 +181,51 @@ class TwitterGiveawayChooser:
                                 random_list.remove(nonList)
                                 random_users.append(nonList)
                                 break
+                        if len(self.tAgeDays) > 0:
+                            aInfo = self.api.get_user(user)
+                            aInfo = aInfo.created_at
+                            #aInfoDT = datetime.datetime.strptime(aInfo, '%Y-%m-%d')
+                            #print(str(datetime.datetime.now() - aInfo))
+                            #print(datetime.datetime.now() + datetime.timedelta(days=int(self.tAgeDays)))
+                            if (datetime.datetime.now() - aInfo) >= (datetime.datetime.now() + datetime.timedelta(days=int(self.tAgeDays)) - datetime.datetime.now()):
+                                pass
+                            else:
+                                participant_eligible=False
+                                random_users.remove(user)
+                                dFrame = pd.DataFrame(random_list)
+                                new_user = dFrame.sample(1).values[0]
+                                for nonList in new_user:
+                                    pass
+                                random_list.remove(nonList)
+                                random_users.append(nonList)
+                                break
+                            
                         if participant_eligible and user not in self.winner_list:
                             self.winner_list.append(user)
                             member = ','.join(self.members_to_follow[0])
                     else:
-                        participant_eligible = True
-                        self.winner_list.append(user)
+                        if len(self.tAgeDays) > 0:
+                            aInfo = self.api.get_user(user)
+                            aInfo = aInfo.created_at
+                            #aInfoDT = datetime.datetime.strptime(aInfo, '%Y-%m-%d')
+                            #print(str(datetime.datetime.now() - aInfo))
+                            #print(user)
+                            #print(random_users)
+                            #print(datetime.datetime.now() + datetime.timedelta(days=int(self.tAgeDays)))
+                            if (datetime.datetime.now() - aInfo) >= (datetime.datetime.now() + datetime.timedelta(days=int(self.tAgeDays)) - datetime.datetime.now()):
+                                participant_eligible = True
+                            else:
+                                participant_eligible=False
+                                random_users.remove(user)
+                                dFrame = pd.DataFrame(random_list)
+                                new_user = dFrame.sample(1).values[0]
+                                for nonList in new_user:
+                                    pass
+                                random_list.remove(nonList)
+                                random_users.append(nonList)
+                                break
+                        if participant_eligible and user not in self.winner_list:
+                            self.winner_list.append(user)
         except Exception as e:
             print(F'[!] No more users to choose from {e}')
             pass
@@ -217,7 +260,7 @@ class TwitterGiveawayChooser:
         if video_url:
             return video_url
 
-def GStart(tweetlink, followers, winCount):
+def GStart(tweetlink, followers, winCount, tAgeDays):
     try:
         url = tweetlink
         members_to_follow = followers
@@ -231,6 +274,7 @@ def GStart(tweetlink, followers, winCount):
                                     query_delay=0,
                                     suspense_time=0,
                                     members_to_follow=members_to_follow,
+                                    tAgeDays = tAgeDays,
                                     contest_name='')
         return Tgiveaway.winner_list
     except Exception as p:
