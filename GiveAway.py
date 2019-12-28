@@ -77,11 +77,10 @@ class TwitterGiveawayChooser:
         sinceId = None
         max_id = max_id
         maxTweets = max_tweets
-        #print(self.tweet.entities['urls'][0]['url'])
-        #print(self.tweet.entities['urls'][0]['display_url'])
         searchQuery = F'RT @{self.author} '+ self.tweet.full_text
         tweetCount = 0
         tweetsPerQry = 100
+        #print(self.api.search(q=searchQuery, count=tweetsPerQry))
         with open(self.filename,'w') as f:
             while tweetCount < maxTweets:
                 try:
@@ -130,6 +129,31 @@ class TwitterGiveawayChooser:
                     time.sleep(self.query_delay)
                     max_id = new_tweets[-1].id
                     break
+        if tweetCount == 0:
+            while tweetCount < maxTweets:
+                print('except2')
+                searchQuery = F'RT @{self.author} '+ self.tweet.full_text[0:10]
+                if(max_id <= 0):
+                    if(not sinceId):
+                        new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry)
+                    else:
+                        new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry, since_id=sinceId)
+                else:
+                    if(not sinceId):
+                        new_tweets = self.api.search(q=searchQuery,count=tweetsPerQry,max_id=str(max_id -1))
+                    else:
+                        new_tweets = self.api.search(q=searchQuery,count=tweetsPerQry,max_id=str(max_id - 1), since_id=sinceId)
+                if not new_tweets:
+                    break
+                for tweet in new_tweets:
+                    self.all_tweets.append(tweet._json)
+                    if write_file:
+                        f.write(jsonpickle.encode(tweet._json, unpicklable=False)+'\n')
+                tweetCount += len(new_tweets)
+                print(F'Tweets: {tweetCount}')
+                time.sleep(self.query_delay)
+                max_id = new_tweets[-1].id
+                break
 
     def get_users(self, show_names=True, from_file=False):
         users_who_retweeted = None       #Responsible for the list of all participants
