@@ -77,6 +77,8 @@ class TwitterGiveawayChooser:
         sinceId = None
         max_id = max_id
         maxTweets = max_tweets
+        #print(self.tweet.entities['urls'][0]['url'])
+        #print(self.tweet.entities['urls'][0]['display_url'])
         searchQuery = F'RT @{self.author} '+ self.tweet.full_text
         tweetCount = 0
         tweetsPerQry = 100
@@ -224,6 +226,8 @@ class TwitterGiveawayChooser:
                                 random_list.remove(nonList)
                                 random_users.append(nonList)
                                 break
+                        else:
+                            self.winner_list.append(user)
                         if participant_eligible and user not in self.winner_list:
                             self.winner_list.append(user)
         except Exception as e:
