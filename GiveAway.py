@@ -106,6 +106,7 @@ class TwitterGiveawayChooser:
                     time.sleep(self.query_delay)
                     max_id = new_tweets[-1].id
                 except:
+                    print('except')
                     half_tweet = int(len(self.tweet.full_text)/2)
                     searchQuery = F'RT @{self.author} '+ self.tweet.full_text[0:half_tweet]
                     if(max_id <= 0):
