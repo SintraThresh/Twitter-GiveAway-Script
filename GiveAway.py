@@ -2,6 +2,7 @@ import json
 import re
 import time
 import sys
+import traceback
 
 import datetime
 
@@ -34,6 +35,7 @@ class TwitterGiveawayChooser:
                  tweet_ratio=.95,
                  wait_on_rate_limit=False,
                  winner_count=1,
+                 tFilter = None,
                  tAgeDays = None):
         self.user = None
         self.creds = json.load(open(creds_file))
@@ -56,6 +58,7 @@ class TwitterGiveawayChooser:
         self.tweet_ratio = tweet_ratio
         self.final_df = None
         self.tAgeDays = tAgeDays
+        self.tfilter = int(tFilter)
         if tweet_url:
             try:
                 self.tweet_id = self.id_from_url(tweet_url)
@@ -208,30 +211,53 @@ class TwitterGiveawayChooser:
                                 random_list.remove(nonList)
                                 random_users.append(nonList)
                                 break
-                        if len(self.tAgeDays) > 0:
-                            aInfo = self.api.get_user(user)
-                            aInfo = aInfo.created_at
-                            #aInfoDT = datetime.datetime.strptime(aInfo, '%Y-%m-%d')
-                            #print(str(datetime.datetime.now() - aInfo))
-                            #print(datetime.datetime.now() + datetime.timedelta(days=int(self.tAgeDays)))
-                            if (datetime.datetime.now() - aInfo) >= (datetime.datetime.now() + datetime.timedelta(days=int(self.tAgeDays)) - datetime.datetime.now()):
-                                pass
-                            else:
-                                participant_eligible=False
-                                random_users.remove(user)
-                                dFrame = pd.DataFrame(random_list)
-                                new_user = dFrame.sample(1).values[0]
-                                for nonList in new_user:
+                            if len(self.tAgeDays) > 0:
+                                aInfo = self.api.get_user(user)
+                                aInfo = aInfo.created_at
+                                #aInfoDT = datetime.datetime.strptime(aInfo, '%Y-%m-%d')
+                                #print(str(datetime.datetime.now() - aInfo))
+                                #print(datetime.datetime.now() + datetime.timedelta(days=int(self.tAgeDays)))
+                                if (datetime.datetime.now() - aInfo) >= (datetime.datetime.now() + datetime.timedelta(days=int(self.tAgeDays)) - datetime.datetime.now()):
                                     pass
-                                random_list.remove(nonList)
-                                random_users.append(nonList)
-                                break
+                                else:
+                                    participant_eligible=False
+                                    random_users.remove(user)
+                                    dFrame = pd.DataFrame(random_list)
+                                    new_user = dFrame.sample(1).values[0]
+                                    for nonList in new_user:
+                                        pass
+                                    random_list.remove(nonList)
+                                    random_users.append(nonList)
+                                    break
+                            if self.tfilter > 0:
+                                cycle = 0
+                                fixedTFilter = datetime.timedelta(0,0,0,0,self.tfilter)
+                                while user != self.all_tweets[cycle]['user']['screen_name']:
+                                    cycle +=1
+                                authorDate = self.tweet.created_at
+                                userDate = datetime.datetime.strptime(self.all_tweets[cycle]['created_at'], '%a %b %d %H:%M:%S %z %Y')
+                                userDate = userDate.replace(tzinfo=None)
+                                if (authorDate + fixedTFilter) >= userDate:
+                                    pass
+                                else:
+                                    participant_eligible=False
+                                    random_users.remove(user)
+                                    dFrame = pd.DataFrame(random_list)
+                                    new_user = dFrame.sample(1).values[0]
+                                    for nonList in new_user:
+                                        pass
+                                    random_list.remove(nonList)
+                                    random_users.append(nonList)
+                                    break
+
                             
                         if participant_eligible and user not in self.winner_list:
                             self.winner_list.append(user)
                             member = ','.join(self.members_to_follow[0])
                     else:
+                        solo = True
                         if len(self.tAgeDays) > 0:
+                            solo = False
                             aInfo = self.api.get_user(user)
                             aInfo = aInfo.created_at
                             #aInfoDT = datetime.datetime.strptime(aInfo, '%Y-%m-%d')
@@ -251,12 +277,36 @@ class TwitterGiveawayChooser:
                                 random_list.remove(nonList)
                                 random_users.append(nonList)
                                 break
-                        else:
+                        if self.tfilter > 0:
+                            solo = False
+                            cycle = 0
+                            fixedTFilter = datetime.timedelta(0,0,0,0,self.tfilter)
+                            while user != self.all_tweets[cycle]['user']['screen_name']:
+                                cycle +=1
+                            authorDate = self.tweet.created_at
+                            userDate = datetime.datetime.strptime(self.all_tweets[cycle]['created_at'], '%a %b %d %H:%M:%S %z %Y')
+                            userDate = userDate.replace(tzinfo=None)
+                            if (authorDate + fixedTFilter) >= userDate:
+                                participant_eligible = True
+                            else:
+                                participant_eligible=False
+                                random_users.remove(user)
+                                dFrame = pd.DataFrame(random_list)
+                                new_user = dFrame.sample(1).values[0]
+                                for nonList in new_user:
+                                    pass
+                                random_list.remove(nonList)
+                                random_users.append(nonList)
+                                break
+                        if solo:
                             self.winner_list.append(user)
                         if participant_eligible and user not in self.winner_list:
                             self.winner_list.append(user)
         except Exception as e:
             print(F'[!] No more users to choose from {e}')
+            if e == "[{'message': 'Rate limit exceeded', 'code': 88}]":
+                raise ValueError('|limit|')
+            #print(traceback.format_exc())
             pass
     def present_winner(self):
         if self.winner_list:
@@ -289,7 +339,7 @@ class TwitterGiveawayChooser:
         if video_url:
             return video_url
 
-def GStart(tweetlink, followers, winCount, tAgeDays):
+def GStart(tweetlink, followers, winCount, tAgeDays, timeFilter):
     try:
         url = tweetlink
         members_to_follow = followers
@@ -304,16 +354,19 @@ def GStart(tweetlink, followers, winCount, tAgeDays):
                                     suspense_time=0,
                                     members_to_follow=members_to_follow,
                                     tAgeDays = tAgeDays,
+                                    tFilter = timeFilter,
                                     contest_name='')
         return Tgiveaway.winner_list
     except Exception as p:
         print(p)
-        if str(p) == "[{'code': 144, 'message': 'No status found with that ID.'}]" or str(p) == "'TwitterGiveawayChooser' object has no attribute 'author'":
+        if str(p) == "[{'code': 144, 'message': 'No status found with that ID.'}]" or str(p) == "'TwitterGiveawayChooser' object has no attribute 'author'" or str(p) == "'NoneType' object has no attribute 'any'":
             return '|tweet|'
         if str(p) == "[{'code': 32, 'message': 'Could not authenticate you.'}]":
             return '|keys|'
-        if str(p) == "'NoneType' object has no attribute 'any'":
-            return '|rate|'
+        if str(p) == '|limit|':
+            return '|limit|'
+        if str(p) == "[{'message': 'Rate limit exceeded', 'code': 88}]":
+            return '|limit|'
         else:
             return '|Error|'
 

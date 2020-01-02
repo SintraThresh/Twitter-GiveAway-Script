@@ -72,15 +72,16 @@ class winnerWindow():
 
 class Worker(QtCore.QThread):
     all_done = QtCore.pyqtSignal(object)
-    def __init__(self, tweetLink, followers, winCount, tAgeDays):
+    def __init__(self, tweetLink, followers, winCount, tAgeDays, timeFilter):
         super(Worker, self).__init__()
         self.tweetLink = tweetLink
         self.followers = followers
         self.winCount = winCount
         self.tAgeDays = tAgeDays
+        self.timeFilter = timeFilter
 
     def next_step(self):
-        winners = GiveAway.GStart(self.tweetLink, self.followers, self.winCount, self.tAgeDays)
+        winners = GiveAway.GStart(self.tweetLink, self.followers, self.winCount, self.tAgeDays, self.timeFilter)
         self.all_done.emit(winners)
     def run(self):
         self.next_step()
@@ -204,18 +205,22 @@ class Ui_MainWindow(object):
         self.winnerCountEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.winnerCountEdit.setGeometry(QtCore.QRect(2, 115, 50, 20))
         self.winnerCountEdit.setObjectName('WinnerCountEdit')
+        self.timeFilter = QtWidgets.QLabel(self.centralwidget)
+        self.timeFilter.setGeometry(QtCore.QRect(208, 95, 110, 16))
+        self.timeFilterEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.timeFilterEdit.setGeometry(QtCore.QRect(208, 115, 105, 20))
 
         self.kError = QtWidgets.QLabel(self.centralwidget)
-        self.kError.setGeometry(QtCore.QRect(2, 90, 341, 16))
+        self.kError.setGeometry(QtCore.QRect(2, 135, 341, 16))
         self.kError.setObjectName("kError")
         self.tError = QtWidgets.QLabel(self.centralwidget)
-        self.tError.setGeometry(QtCore.QRect(2, 90, 341, 16))
+        self.tError.setGeometry(QtCore.QRect(2, 135, 341, 16))
         self.tError.setObjectName("tError")
-        self.rError = QtWidgets.QLabel(self.centralwidget)
-        self.rError.setGeometry(QtCore.QRect(2, 90, 341, 16))
-        self.rError.setObjectName("rError")
+        self.lError = QtWidgets.QLabel(self.centralwidget)
+        self.lError.setGeometry(QtCore.QRect(2, 135, 341, 16))
+        self.lError.setObjectName("lError")
         self.error = QtWidgets.QLabel(self.centralwidget)
-        self.error.setGeometry(QtCore.QRect(2, 90, 341, 16))
+        self.error.setGeometry(QtCore.QRect(2, 135, 341, 16))
         self.error.setObjectName("error")
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -248,31 +253,33 @@ class Ui_MainWindow(object):
         self.winnerCountLabel.setText(_translate("MainWindow", "# Winners"))
         self.winnerCountEdit.setText(_translate("MainWindow", '1'))
         self.tAge.setText(_translate("MainWindow", 'Account Age (in days)'))
+        self.timeFilter.setText(_translate("MainWindow", 'Time Filter (in minutes)'))
+        self.timeFilterEdit.setText(_translate("MainWindow", '0'))
 
         self.kError.setStyleSheet('color: red')
         self.kError.hide()
         self.kError.setText(_translate("MainWindow", "Key Error! Please re-check your keys."))
-        self.rError.setStyleSheet('color: red')
-        self.rError.setText(_translate("MainWindow", "Rate limit exceeded! Please try again in 15 minutes."))
-        self.rError.hide()
         self.tError.setStyleSheet('color: red')
-        self.tError.setText(_translate("MainWindow", "Invalid Tweet link, please re-check your link."))
+        self.tError.setText(_translate("MainWindow", "An error has occured with that tweet. Double check tweet link."))
         self.tError.hide()
+        self.lError.setStyleSheet('color: red')
+        self.lError.setText(_translate("MainWindow", "Rate limit exceeded! Please wait 15 minutes before trying again."))
+        self.lError.hide()
         self.error.setStyleSheet('color: red')
-        self.error.setText(_translate("MainWindow", "An error has occured, please try again."))
+        self.error.setText(_translate("MainWindow", "An error has occured."))
         self.error.hide()
 
     def winFunc(self, winners):
         _translate = QtCore.QCoreApplication.translate
-        if winners in ['|keys|', '|tweet|', '|rate|', '|Error|']:
+        if winners in ['|keys|', '|tweet|', '|limit|', '|Error|']:
             self.pushButton.setDisabled(False)
             self.pushButton_2.setDisabled(False)
             if winners == '|keys|':
                 self.kError.show()
             elif winners == '|tweet|':
                 self.tError.show()
-            elif winners == '|rate|':
-                self.rError.show()
+            elif winners == '|limit|':
+                self.lError.show()
             elif winners == '|Error|':
                 self.error.show()
         else:
@@ -287,8 +294,8 @@ class Ui_MainWindow(object):
 
     def start(self):
         self.kError.hide()
-        self.rError.hide()
         self.tError.hide()
+        self.lError.hide()
         self.error.hide()
         self.lineEdit.setFocus(False)
         self.tweetInput.setFocus(False)
@@ -297,10 +304,11 @@ class Ui_MainWindow(object):
         tweetLink = self.lineEdit.text()
         winCount = self.winnerCountEdit.text()
         tAgeDays = self.tAge_edit.text()
+        timeFilter = self.timeFilterEdit.text()
         followers = []
         for followerItem in range(0, self.listWidget.count()):
             followers.append(self.listWidget.item(followerItem).text())
-        self.worker = Worker(tweetLink, followers, winCount, tAgeDays)
+        self.worker = Worker(tweetLink, followers, winCount, tAgeDays, timeFilter)
         self.worker.start()
         self.worker.all_done.connect(self.winFunc)
 
