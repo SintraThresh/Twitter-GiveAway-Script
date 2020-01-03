@@ -2,6 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import json
 import GiveAway
 import webbrowser
+import time
 
 class winnerWindow():
     def winnerFunc(self, thirdWindow, winners):
@@ -86,6 +87,18 @@ class Worker(QtCore.QThread):
     def run(self):
         self.next_step()
 
+class Worker1(QtCore.QThread):
+    all_done1 = QtCore.pyqtSignal(object)
+    def __init__(self):
+        super(Worker1, self).__init__()
+
+    def next_step(self):
+        for x in range(1,8):
+            self.all_done1.emit(1)
+            time.sleep(1.5)
+    def run(self):
+        self.next_step()
+
 class keyWindow():
     def keyWinFunc(self, secondWindow):
         secondWindow.setObjectName("MainWindow")
@@ -137,7 +150,6 @@ class keyWindow():
         self.saveButton.setText(translate("secondWindow", 'Save'))
         QtCore.QMetaObject.connectSlotsByName(secondWindow)
 
-
         try:
             with open('twitter_credential.json', 'r') as reInput1:
                 reInput = json.load(reInput1)
@@ -155,6 +167,40 @@ class keyWindow():
                 "ACCESS_SECRET": self.tokenSecret.text().replace(' ','')}
         with open('twitter_credential.json','w') as creds:
             json.dump(newCred, creds)
+
+
+class countDown():
+    def countDownFunction(self, countDownWindow, winners):
+        self.cycle = 6
+        self.winners = winners
+        self.countDownWindow = countDownWindow
+        countDownWindow.setObjectName("CountWindow")
+        countDownWindow.resize(200, 200)
+        countDownWindow.setMinimumSize(QtCore.QSize(200, 200))
+        countDownWindow.setMaximumSize(QtCore.QSize(200, 200))
+        self.countDownWindowCenter = QtWidgets.QWidget(countDownWindow)
+        countDownWindow.setCentralWidget(self.countDownWindowCenter)
+        self.counter = QtWidgets.QLabel(self.countDownWindowCenter)
+        self.counter.setGeometry(QtCore.QRect(0, -10, 200, 200))
+        self.translate = QtCore.QCoreApplication.translate
+        self.worker1 = Worker1() 
+        self.worker1.start()
+        self.worker1.all_done1.connect(self.countDown)
+    def countDown(self):
+        if self.cycle > 0:
+            self.cycle -=1
+            self.counter.setText(self.translate('countDownWindow', str(self.cycle)))
+            self.counterFont = QtGui.QFont()
+            self.counterFont.setPointSize(160)
+            self.counterFont.setBold(True)
+            self.counter.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+            self.counter.setFont(self.counterFont)
+        else:
+            self.countDownWindow.close()
+            self.thirdWindow = QtWidgets.QMainWindow()
+            self.win = winnerWindow()
+            self.win.winnerFunc(self.thirdWindow, self.winners)
+            self.thirdWindow.show()
 
 
 class Ui_MainWindow(object):
@@ -285,12 +331,10 @@ class Ui_MainWindow(object):
         else:
             self.pushButton.setDisabled(False)
             self.pushButton_2.setDisabled(False)
-            self.thirdWindow = QtWidgets.QMainWindow()
-            self.win = winnerWindow()
-            self.win.winnerFunc(self.thirdWindow, winners)
-            self.thirdWindow.show()
-            self.pushButton.setDisabled(False)
-            self.pushButton_2.setDisabled(False)
+            self.countDownWindow = QtWidgets.QMainWindow()
+            self.count = countDown()
+            self.count.countDownFunction(self.countDownWindow, winners)
+            self.countDownWindow.show()
 
     def start(self):
         self.kError.hide()
