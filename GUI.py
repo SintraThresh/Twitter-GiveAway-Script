@@ -69,7 +69,26 @@ class winnerWindow():
             self.hypeFont.setPointSize(16)
             self.hypeLink.setFont(self.hypeFont)
         else:
-            print(len(winners))
+            thirdWindow.setObjectName('WinnerWindow')
+            thirdWindow.resize(462, 192)
+            thirdWindow.setMinimumSize(QtCore.QSize(462, 192))
+            thirdWindow.setMaximumSize(QtCore.QSize(462, 192))
+            self.thirdWindowCenter = QtWidgets.QWidget(thirdWindow)
+            thirdWindow.setCentralWidget(self.thirdWindowCenter)
+            translate = QtCore.QCoreApplication.translate
+            self.textLabel = QtWidgets.QLabel(self.thirdWindowCenter)
+            self.textLabel.setGeometry(QtCore.QRect(0, 0, 462, 192))
+            self.textLabelFont = QtGui.QFont()
+            self.textLabelFont.setBold(True)
+            self.textLabel.setFont(self.textLabelFont)
+            self.textLabel.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
+            self.textLabel.setText(translate('thirdWindow', 'No Winners Selected'))
+            self.textLabel2 = QtWidgets.QLabel(self.thirdWindowCenter)
+            self.textLabel2.setGeometry(QtCore.QRect(0, 22, 450, 250))
+            self.textLabel2Font = QtGui.QFont()
+            self.textLabel2.setFont(self.textLabel2Font)
+            self.textLabel2.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
+            self.textLabel2.setText(translate('thirdWindow', 'No twitter users met the filter requirements.'))
 
 class Worker(QtCore.QThread):
     all_done = QtCore.pyqtSignal(object)
