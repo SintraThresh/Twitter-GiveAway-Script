@@ -367,5 +367,7 @@ def GStart(tweetlink, followers, winCount, tAgeDays, timeFilter):
         if str(p) == "[{'message': 'Rate limit exceeded', 'code': 88}]":
             return '|limit|'
         else:
+            with open('logs.txt', 'w') as er:
+                er.write(str(p))
             return '|Error|'
 
