@@ -1,7 +1,6 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
 import json
 import GiveAway
-import webbrowser
 import time
 
 class winnerWindow():
@@ -48,6 +47,14 @@ class winnerWindow():
             thirdWindow.setMaximumSize(QtCore.QSize(700, 250))
             self.thirdWindowCenter = QtWidgets.QWidget(thirdWindow)
             self.thirdWindowCenter.setObjectName('ThirdWindowCenter')
+            self.gif = QtGui.QMovie('fireworks.gif')
+            self.gifLabel = QtWidgets.QLabel(self.thirdWindowCenter)
+            self.gifLabel.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
+            self.gifLabel.setGeometry(QtCore.QRect(0, 0, 700, 250))
+            self.gifLabel.setMovie(self.gif)
+            self.fSound = QtMultimedia.QSound('fireworksSound.wav')
+            self.gif.start()
+            self.fSound.play()
             self.labelWin = QtWidgets.QLabel(self.thirdWindowCenter)
             self.labelWin.setGeometry(QtCore.QRect(0, 0, 700, 180))
             self.labelWin.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignTop)
