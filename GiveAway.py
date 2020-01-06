@@ -103,13 +103,15 @@ class TwitterGiveawayChooser:
                         if write_file:
                             f.write(jsonpickle.encode(tweet._json, unpicklable=False)+'\n')
                     tweetCount += len(new_tweets)
+                    self.tweetCount = tweetCount
                     print(F'Tweets: {tweetCount}')
                     time.sleep(self.query_delay)
                     max_id = new_tweets[-1].id
                 except:
                     print('except')
                     half_tweet = int(len(self.tweet.full_text)/2)
-                    searchQuery = F'RT @{self.author} '+ self.tweet.full_text[0:half_tweet]
+                    #searchQuery = F'RT @{self.author} '+ self.tweet.full_text[0:half_tweet]
+                    searchQuery = F'RT @{self.author} '+ self.tweet.full_text[0:8]
                     if(max_id <= 0):
                         if(not sinceId):
                             new_tweets = self.api.search(q=searchQuery, count=tweetsPerQry)
@@ -127,6 +129,7 @@ class TwitterGiveawayChooser:
                         if write_file:
                             f.write(jsonpickle.encode(tweet._json, unpicklable=False)+'\n')
                     tweetCount += len(new_tweets)
+                    self.tweetCount = tweetCount
                     print(F'Tweets: {tweetCount}')
                     time.sleep(self.query_delay)
                     max_id = new_tweets[-1].id
@@ -190,6 +193,8 @@ class TwitterGiveawayChooser:
         time.sleep(self.suspense_time)
         random_users=list(self.users.sample(self.winner_count).values)
         random_list = list(self.users)
+        with open('TweetCount.txt','w') as twt:
+            twt.write(str(self.tweetCount))
         for rando in random_users:
             random_list.remove(rando)
         try:
@@ -355,6 +360,7 @@ def GStart(tweetlink, followers, winCount, tAgeDays, timeFilter):
                                     tAgeDays = tAgeDays,
                                     tFilter = timeFilter,
                                     contest_name='')
+        #print(str(Tgiveaway.winner_list))
         return Tgiveaway.winner_list
     except Exception as p:
         print(p)
