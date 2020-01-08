@@ -2,6 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
 import json
 import GiveAway
 import time
+import datetime
 
 class winnerWindow():
     def winnerFunc(self, thirdWindow, winners):
@@ -52,6 +53,13 @@ class winnerWindow():
             self.gifLabel.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
             self.gifLabel.setGeometry(QtCore.QRect(0, 0, 900, 300))
             self.gifLabel.setMovie(self.gif)
+            self.tweetCountLabel = QtWidgets.QLabel(self.thirdWindowCenter)
+            self.tweetCountLabel.setGeometry(QtCore.QRect(0, 155, 900, 175))
+            self.tweetCountLabel.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+            self.tweetCountLabelFont = QtGui.QFont()
+            self.tweetCountLabelFont.setBold(True)
+            self.tweetCountLabelFont.setPointSize(11)
+            self.tweetCountLabel.setFont(self.tweetCountLabelFont)
             self.fSound = QtMultimedia.QSound('fireworksSound.wav')
             self.gif.start()
             self.fSound.play()
@@ -65,6 +73,10 @@ class winnerWindow():
             thirdWindow.setCentralWidget(self.thirdWindowCenter)
             translate = QtCore.QCoreApplication.translate
             self.labelWin.setText(translate('thirdWindow', '{}'.format(winners)))
+            with open('TweetCount.txt','r') as twt:
+                twt = twt.read()
+            theDate = datetime.datetime.now().strftime('%B %d %Y, %I:%M %p')
+            self.tweetCountLabel.setText(translate('thirdWindow', f'Entries Found: {twt}\nDate: {theDate}'))
             self.winnerFont = QtGui.QFont()
             self.winnerFont.setBold(True)
             self.winnerFont.setPointSize(55)
